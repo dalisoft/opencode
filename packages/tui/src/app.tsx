@@ -96,6 +96,7 @@ import { openUrl } from "@opencode/util/open"
 import { PromptRefProvider, usePromptRef } from "./context/prompt"
 import { Config, ConfigProvider, useConfig } from "./config"
 import { newSessionLocation } from "./config/new-session-location"
+import { initialLocation } from "./location"
 import { UpdateNotificationProvider, useUpdateNotification, type UpdateSource } from "./context/update-notification"
 import { PluginProvider, usePlugin, type PackageSource } from "./plugin/context"
 import { localPluginDirectories } from "./plugin/discovery"
@@ -223,10 +224,7 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
     fetch: noTimeoutFetch,
   }
   const api = OpenCode.make(options)
-  const location = yield* Effect.tryPromise(() => api.file.list({ location: { directory: process.cwd() } })).pipe(
-    Effect.map((response) => response.location),
-    Effect.catch(() => Effect.tryPromise(() => api.location.get())),
-  )
+  const location = yield* Effect.tryPromise(() => initialLocation(api))
   const directory = location.directory
   const pluginDirectories = yield* Effect.promise(() => localPluginDirectories(process.cwd(), global.config))
   const handoff = input.terminalHandoff ? yield* Effect.promise(input.terminalHandoff) : undefined
